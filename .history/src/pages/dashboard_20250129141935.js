@@ -72,7 +72,6 @@ const Dashboard = () => {
                 {/* Leftbar with navigation */}
                 <Leftbar
                     keySelected={activeTab}
-                    
                     items={navigationItems}
                     onItemClick={(key) => setActiveTab(key)}
                 />
