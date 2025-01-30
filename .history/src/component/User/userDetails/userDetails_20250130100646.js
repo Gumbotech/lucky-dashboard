@@ -49,31 +49,42 @@ export default function UserDetailsPage({ configData, user }) {
       groupedPredictions[month].push(prediction);
     });
 
-
+    
 
     try {
+
       // Iterate over each month and prepare the payload for the API
-      for (const [month, predictionsForMonth] of Object.entries(groupedPredictions)) {
-        // Filter predictions that are within the date range for the month
-        const filteredPredictions = predictionsForMonth.filter((prediction) =>
-          isDateWithinRange(DateTime.fromISO(prediction.date), user.calendarStatusData.endTime)
-        );
+    for (const [month, predictionsForMonth] of Object.entries(groupedPredictions)) {
+      // Filter predictions that are within the date range for the month
+      const filteredPredictions = predictionsForMonth.filter((prediction) =>
+        isDateWithinRange(DateTime.fromISO(prediction.date), user.calendarStatusData.endTime)
+      );
 
-        // Format the luckStatus object for the API
-        const formattedLuckStatus = filteredPredictions.reduce((acc, prediction) => {
-          const day = DateTime.fromISO(prediction.date).day;
-          acc[day] = prediction.type;
-          return acc;
-        }, {});
+      // Format the luckStatus object for the API
+      const formattedLuckStatus = filteredPredictions.reduce((acc, prediction) => {
+        const day = DateTime.fromISO(prediction.date).day;
+        acc[day] = prediction.type;
+        return acc;
+      }, {});
 
-        const response = await updateUserCalendar(user, month, formattedLuckStatus);
-        // message.success(`Predictions for ${month} saved successfully:`);
-        // console.log(`Predictions for ${month} saved successfully:`, response);
-      }
+      const payload = {
+        userId: user.userDetailsResponse.userId,
+        subscriptionId: user.calendarStatusData.subscriptionId,
+        month: month,
+        luckStatus: formattedLuckStatus,
+      };
 
+      const response = await updateUserCalendar(user, month, formattedLuckStatus);
+      message.success(`Predictions for ${month} saved successfully:`);
+      console.log(`Predictions for ${month} saved successfully:`, response);
+
+      
+      
+    }
+       
     } catch (error) {
-      message.error(`Failed to save predictions: ${error.message || error.toString()}`);
-      console.log(`Failed to save predictions :`, error);
+      message.error(`Failed to save predictions for ${month}: ${error.message || error.toString()}`);
+      console.log(`Failed to save predictions for ${month}:`, error);
     }
 
     message.success(`Predictions saved successfully!`);
@@ -138,7 +149,7 @@ export default function UserDetailsPage({ configData, user }) {
     const existingIndex = predictions.findIndex(
       (p) => DateTime.fromISO(p.date).toISODate() === selectedDate.toISODate()
     );
-
+    
     if (existingIndex !== -1) {
       updatedPredictions[existingIndex] = newPrediction;
     } else {

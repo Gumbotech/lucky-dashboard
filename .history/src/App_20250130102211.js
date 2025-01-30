@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Signin from './pages/signin';
 import Dashboard from './pages/dashboard';
+import 'antd/dist/antd.css';
 
 
 function App() {

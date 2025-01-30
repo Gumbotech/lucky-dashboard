@@ -52,6 +52,7 @@ export default function UserDetailsPage({ configData, user }) {
 
 
     try {
+
       // Iterate over each month and prepare the payload for the API
       for (const [month, predictionsForMonth] of Object.entries(groupedPredictions)) {
         // Filter predictions that are within the date range for the month
@@ -66,14 +67,24 @@ export default function UserDetailsPage({ configData, user }) {
           return acc;
         }, {});
 
+        const payload = {
+          userId: user.userDetailsResponse.userId,
+          subscriptionId: user.calendarStatusData.subscriptionId,
+          month: month,
+          luckStatus: formattedLuckStatus,
+        };
+
         const response = await updateUserCalendar(user, month, formattedLuckStatus);
-        // message.success(`Predictions for ${month} saved successfully:`);
-        // console.log(`Predictions for ${month} saved successfully:`, response);
+        message.success(`Predictions for ${month} saved successfully:`);
+        console.log(`Predictions for ${month} saved successfully:`, response);
+
+
+
       }
 
     } catch (error) {
-      message.error(`Failed to save predictions: ${error.message || error.toString()}`);
-      console.log(`Failed to save predictions :`, error);
+      message.error(`Failed to save predictions for ${month}: ${error.message || error.toString()}`);
+      console.log(`Failed to save predictions for ${month}:`, error);
     }
 
     message.success(`Predictions saved successfully!`);

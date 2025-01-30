@@ -66,6 +66,13 @@ export default function UserDetailsPage({ configData, user }) {
           return acc;
         }, {});
 
+        const payload = {
+          userId: user.userDetailsResponse.userId,
+          subscriptionId: user.calendarStatusData.subscriptionId,
+          month: month,
+          luckStatus: formattedLuckStatus,
+        };
+
         const response = await updateUserCalendar(user, month, formattedLuckStatus);
         // message.success(`Predictions for ${month} saved successfully:`);
         // console.log(`Predictions for ${month} saved successfully:`, response);

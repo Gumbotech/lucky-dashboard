@@ -28,12 +28,11 @@ export const getUserWithStatus = async (status) => {
     }
 };
 
-export const updateUserCalendar = async (user, month, luckStatus) => {
+export const updateUserCalendar = async (userId,subscriptionId, month, luckStatus) => {
     try {
         const payload = {
-            userId: user.userDetailsResponse.userId,
-            subscriptionId: user.calendarStatusData.subscriptionId,
-            endTime: user.calendarStatusData.endTime,
+            userId: userId,
+            subscriptionId: subscriptionId,
             month: month,
             luckStatus: luckStatus
         };

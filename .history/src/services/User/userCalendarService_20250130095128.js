@@ -33,7 +33,6 @@ export const updateUserCalendar = async (user, month, luckStatus) => {
         const payload = {
             userId: user.userDetailsResponse.userId,
             subscriptionId: user.calendarStatusData.subscriptionId,
-            endTime: user.calendarStatusData.endTime,
             month: month,
             luckStatus: luckStatus
         };

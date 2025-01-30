@@ -174,7 +174,10 @@ export default function UserDetailsPage({ configData, user }) {
           predictions={predictions}
           onDateSelect={handleDateSelect}
           onFetchPredictions={fetchDataAsPerDate}
-          onSavePredictions={(handleSavePredictionApiCaller)}
+          onSavePredictions={() => {
+            console.log('Save Predictions triggered!');
+             message.success(`Predictions saved successfully!`);
+          }}
         />
 
         <PredictionModal
