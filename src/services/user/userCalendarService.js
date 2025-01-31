@@ -1,6 +1,6 @@
-import apiClient from '../apiService'; 
+import apiClient from '../apiService';
 
-export const getUserCalendar = async (userId,month) => {
+export const getUserCalendar = async (userId, month) => {
     try {
         const response = await apiClient.get('/calendar/v1/calendar/user', {
             params: {
@@ -42,8 +42,9 @@ export const updateUserCalendar = async (user, month, luckStatus) => {
 
         return response.data;
     } catch (error) {
+        const message = error?.response?.data?.message || error?.message || 'An unexpected error occurred.';
         console.error('Error updating user calendar:', error);
-        throw error;
+        throw new Error(message);
     }
 };
 

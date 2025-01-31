@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Button, Calendar, Card, Tag } from 'antd';
 import { DateTime } from 'luxon';
-import { capFirst, isDateWithinRange } from '../../../../utils/utils';
+import { capFirst, inRange } from '../../../../utils/utils';
 
 const highlightStyle = {
   backgroundColor: '#ccedcc',
@@ -30,7 +30,7 @@ const AstrologicalCalendar = ({ user, predictions, onDateSelect, onSavePredictio
       const cellContent = [];
 
       // Add underline highlight for dates within range
-      if (user?.calendarStatusData?.endTime && isDateWithinRange(luxonDate, user.calendarStatusData.endTime)) {
+      if (user?.calendarStatusData?.endTime && inRange(luxonDate, user)) {
         cellContent.push(<div key="highlight" style={highlightStyle} />);
       }
 
@@ -74,7 +74,7 @@ const AstrologicalCalendar = ({ user, predictions, onDateSelect, onSavePredictio
         </div>
       }
     >
-      <Calendar onSelect={onDateSelect} cellRender={dateCellRender} />
+      <Calendar onSelect={onDateSelect} onPanelChange={() => {console.log("PANEL CHANGED")}} cellRender={dateCellRender} />
     </Card>
   );
 };

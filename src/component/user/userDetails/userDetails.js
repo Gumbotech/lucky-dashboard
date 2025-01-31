@@ -4,7 +4,7 @@ import { Empty, Spin, message } from 'antd';
 import AstrologicalCalendar from './components/astrologicalCalendar';
 import PredictionModal from './components/predictionModel';
 import { UserDetailsHeader, AccountInformation } from './components/userDetailsComponents';
-import { getMonthsBetween, isDateWithinRange, timeout } from '../../../utils/utils';
+import { getMonthsBetween, inRange, timeout } from '../../../utils/utils';
 import { getUserCalendar, updateUserCalendar } from '../../../services/user/userCalendarService';
 
 
@@ -56,7 +56,7 @@ export default function UserDetailsPage({ configData, user }) {
       for (const [month, predictionsForMonth] of Object.entries(groupedPredictions)) {
         // Filter predictions that are within the date range for the month
         const filteredPredictions = predictionsForMonth.filter((prediction) =>
-          isDateWithinRange(DateTime.fromISO(prediction.date), user.calendarStatusData.endTime)
+          inRange(DateTime.fromISO(prediction.date), user)
         );
 
         // Format the luckStatus object for the API
@@ -70,13 +70,14 @@ export default function UserDetailsPage({ configData, user }) {
         // message.success(`Predictions for ${month} saved successfully:`);
         // console.log(`Predictions for ${month} saved successfully:`, response);
       }
+      message.success(`Predictions saved successfully!`);
 
     } catch (error) {
       message.error(`Failed to save predictions: ${error.message || error.toString()}`);
       console.log(`Failed to save predictions :`, error);
     }
 
-    message.success(`Predictions saved successfully!`);
+   
     setIsModalOpen(false);
     setLoading(false);
   };
@@ -117,14 +118,16 @@ export default function UserDetailsPage({ configData, user }) {
   };
 
   const handleDateSelect = (date) => {
+    console.log("Date CHANGED")
     const luxonDate = DateTime.fromJSDate(date.toDate());
+    
     setSelectedDate(luxonDate);
 
     const prediction = predictions.find(
       (p) => DateTime.fromISO(p.date).toISODate() === luxonDate.toISODate()
     );
 
-    if (user?.calendarStatusData?.endTime && isDateWithinRange(luxonDate, user.calendarStatusData.endTime)) {
+    if (user?.calendarStatusData?.endTime && inRange(luxonDate, user)) {
       setPredictionType(prediction?.type ?? 'average');
       setDescription(prediction?.description ?? '');
       setIsModalOpen(true);

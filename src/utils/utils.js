@@ -1,19 +1,33 @@
 import { DateTime } from 'luxon';
 
-export const isDateWithinRange = (date, endDate) => {
-  const today = DateTime.now().startOf('day');
+export const inRange = (date, user) =>
+  isDateWithinRange(
+    date,
+    user.calendarStatusData.startTime,
+    user.calendarStatusData.endTime
+  )
 
-  // Check if endDate is valid (is a number and not undefined)
-  if (typeof endDate !== 'number' || isNaN(endDate)) {
-    console.error("Invalid endDate: ", endDate);
+export const isDateWithinRange = (date, startDate, endDate) => {
+  // const today = DateTime.now().startOf('day');
+  if (!isValidDate(endDate) || !isValidDate(startDate)) {
     return false;
   }
+  
 
-  const end = DateTime.fromMillis(endDate);
+  const today = DateTime.fromMillis(startDate).startOf('day')
+  const end = DateTime.fromMillis(endDate).startOf('day');
   const rangeEnd = today.plus({ days: 30 });
 
   const finalEndDate = end > rangeEnd ? end : rangeEnd;
-  return date >= today && date <= finalEndDate;
+  return date.startOf('day') >= today && date.startOf('day') <= finalEndDate;
+};
+
+export const isValidDate = (date) => {
+  if (typeof date !== 'number' || isNaN(date)) {
+    console.error("Invalid date: ", date);
+    return false;
+  }
+  return true;
 };
 
 
@@ -41,7 +55,7 @@ export function timeout(delay) {
 // Function to calculate the number of months from the current month to the month of 'endTime'
 export const getMonthsBetween = (startDate, endDate) => {
   const start = DateTime.fromMillis(startDate); // Convert start date (current date)
-  const end = DateTime.fromMillis(endDate).plus({month:1}); // Convert end time (from user data)
+  const end = DateTime.fromMillis(endDate).plus({ month: 1 }); // Convert end time (from user data)
 
   let months = [];
   let currentMonth = start;

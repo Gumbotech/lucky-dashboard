@@ -41,7 +41,7 @@ export function timeout(delay) {
 // Function to calculate the number of months from the current month to the month of 'endTime'
 export const getMonthsBetween = (startDate, endDate) => {
   const start = DateTime.fromMillis(startDate); // Convert start date (current date)
-  const end = DateTime.fromMillis(endDate).plus({month}); // Convert end time (from user data)
+  const end = DateTime.fromMillis(endDate).plus({month:1}); // Convert end time (from user data)
 
   let months = [];
   let currentMonth = start;
