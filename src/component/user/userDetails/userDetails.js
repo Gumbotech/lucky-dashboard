@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { DateTime } from 'luxon';
-import { Empty, Spin, message } from 'antd';
+import { Empty, Spin, message, Button } from 'antd';
 import AstrologicalCalendar from './components/astrologicalCalendar';
 import PredictionModal from './components/predictionModel';
 import { UserDetailsHeader, AccountInformation } from './components/userDetailsComponents';
 import { getMonthsBetween, inRange, timeout } from '../../../utils/utils';
 import { getUserCalendar, updateUserCalendar } from '../../../services/user/userCalendarService';
+import { sendDataReadyNotification} from '../../../services/firebaseService';
 
 
 
@@ -49,8 +50,6 @@ export default function UserDetailsPage({ configData, user }) {
       groupedPredictions[month].push(prediction);
     });
 
-
-
     try {
       // Iterate over each month and prepare the payload for the API
       for (const [month, predictionsForMonth] of Object.entries(groupedPredictions)) {
@@ -67,6 +66,14 @@ export default function UserDetailsPage({ configData, user }) {
         }, {});
 
         const response = await updateUserCalendar(user, month, formattedLuckStatus);
+
+        //send notification if its the first time the data has been filled..
+        if (user.calendarStatusData.status == 'PENDING' && filteredPredictions.length > 0) {
+          const descJson = JSON.parse(user.userDetailsResponse.description);
+          sendDataReadyNotification(descJson.token);
+          console.log('First Time Data Filled - Notification Sent To User..');
+        }
+
         // message.success(`Predictions for ${month} saved successfully:`);
         // console.log(`Predictions for ${month} saved successfully:`, response);
       }
@@ -77,7 +84,7 @@ export default function UserDetailsPage({ configData, user }) {
       console.log(`Failed to save predictions :`, error);
     }
 
-   
+
     setIsModalOpen(false);
     setLoading(false);
   };
@@ -120,7 +127,7 @@ export default function UserDetailsPage({ configData, user }) {
   const handleDateSelect = (date) => {
     console.log("Date CHANGED")
     const luxonDate = DateTime.fromJSDate(date.toDate());
-    
+
     setSelectedDate(luxonDate);
 
     const prediction = predictions.find(
@@ -151,6 +158,42 @@ export default function UserDetailsPage({ configData, user }) {
     setIsModalOpen(false);
   };
 
+  //new code -------- start
+  const [selectedDates, setSelectedDates] = useState([]);
+  
+  const handleBulkSavePrediction = () => {
+    const newPredictions = selectedDates.map((date) => ({
+      date,
+      type: predictionType,
+      description,
+    }));
+  
+    const updatedPredictions = [...predictions];
+    newPredictions.forEach((newPrediction) => {
+      const existingIndex = predictions.findIndex(
+        (p) => DateTime.fromISO(p.date).toISODate() === newPrediction.date
+      );
+  
+      if (existingIndex !== -1) {
+        updatedPredictions[existingIndex] = newPrediction;
+      } else {
+        updatedPredictions.push(newPrediction);
+      }
+    });
+  
+    setPredictions(updatedPredictions);
+    setIsModalOpen(false);
+    setSelectedDates([]); // Clear selected dates
+  };
+
+  //for clearing checkbox selection
+  const clearAllSelection = () => {
+    setSelectedDates([]);
+    setIsModalOpen(false);
+  }
+
+  //new code -------- end
+
   if (!user) {
     return (
       <div
@@ -168,7 +211,6 @@ export default function UserDetailsPage({ configData, user }) {
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px', paddingBottom: '48px' }}>
-
       <UserDetailsHeader />
       <AccountInformation user={user} />
       <Spin size='large' spinning={loading}>
@@ -178,18 +220,22 @@ export default function UserDetailsPage({ configData, user }) {
           onDateSelect={handleDateSelect}
           onFetchPredictions={fetchDataAsPerDate}
           onSavePredictions={(handleSavePredictionApiCaller)}
+          selectedDates={selectedDates}
+          setSelectedDates={setSelectedDates}
         />
 
         <PredictionModal
           luckStatuses={configData?.luckStatuses}
           isOpen={isModalOpen}
           selectedDate={selectedDate}
+          selectedDates={selectedDates}
           predictionType={predictionType}
           description={description}
           onClose={() => setIsModalOpen(false)}
-          onSave={handleSavePrediction}
+          onSave={selectedDates.length > 0 ? handleBulkSavePrediction : handleSavePrediction}
           onTypeChange={(e) => setPredictionType(e.target.value)}
           onDescriptionChange={(e) => setDescription(e.target.value)}
+          onClearAll={clearAllSelection}
         />
       </Spin>
     </div>

@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Button, Calendar, Card, Tag } from 'antd';
+import React, { useMemo, useState } from 'react';
+import { Button, Calendar, Card, Tag, Checkbox } from 'antd';
 import { DateTime } from 'luxon';
 import { capFirst, inRange } from '../../../../utils/utils';
 
@@ -20,23 +20,57 @@ const tagStyle = {
   width: '100%',
 };
 
+// Disable text selection
+const noSelectStyle = {
+  userSelect: 'none', // Disables text selection
+  WebkitUserSelect: 'none', // Safari
+  MozUserSelect: 'none', // Firefox
+};
 
+const AstrologicalCalendar = ({
+  user,
+  predictions,
+  onDateSelect,
+  onSavePredictions,
+  onFetchPredictions,
+  selectedDates,
+  setSelectedDates,
+}) => {
 
-const AstrologicalCalendar = ({ user, predictions, onDateSelect, onSavePredictions, onFetchPredictions }) => {
-  // Memoize the `dateCellRender` to avoid unnecessary re-renders
+  //for checkbox selected dates..
+  const handleDateSelect = (date) => {
+    console.log(`Date Select Called :`, date);
+    const luxonDate = DateTime.fromJSDate(date.toDate());
+    const dateString = luxonDate.toISODate();
+
+    setSelectedDates((prevSelectedDates) => {
+      console.log(`Date Select to add :`, dateString);
+      console.log(`Date Select PREV Dates :`, prevSelectedDates);
+      if (prevSelectedDates.includes(dateString)) {
+        return prevSelectedDates.filter((d) => d !== dateString); // Deselect if already selected
+      } else {
+        return [...prevSelectedDates, dateString]; // Select the date
+      }
+    });
+  };
+
   const dateCellRender = useMemo(() => {
     return (date) => {
       const luxonDate = DateTime.fromJSDate(date.toDate());
+      const dateString = luxonDate.toISODate();
+      const isSelected = selectedDates.includes(dateString);
+
       const cellContent = [];
 
       // Add underline highlight for dates within range
-      if (user?.calendarStatusData?.endTime && inRange(luxonDate, user)) {
+      const isInRange = user?.calendarStatusData?.endTime && inRange(luxonDate, user);
+      if (isInRange) {
         cellContent.push(<div key="highlight" style={highlightStyle} />);
       }
 
       // Find and render predictions
       const prediction = predictions.find(
-        (p) => DateTime.fromISO(p.date).toISODate() === luxonDate.toISODate()
+        (p) => DateTime.fromISO(p.date).toISODate() === dateString
       );
 
       if (prediction) {
@@ -44,15 +78,53 @@ const AstrologicalCalendar = ({ user, predictions, onDateSelect, onSavePredictio
           prediction.type === 'lucky' ? 'green' : prediction.type === 'unlucky' ? 'red' : 'blue';
 
         cellContent.push(
-          <Tag key="badge" color={color} style={tagStyle}>
-            {capFirst(prediction.type)}
-          </Tag>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: '8px',
+            height: '100%',
+          }}>
+            <Tag key="badge" color={color} style={tagStyle}>
+              {capFirst(prediction.type)}
+            </Tag>
+          </div>
         );
       }
 
-      return <div>{cellContent}</div>;
+      return (
+        <div
+          style={noSelectStyle} // Apply no selection style here
+        >
+          {/* Clickable area for the date */}
+          <div onClick={(event) => {
+            if (event.ctrlKey) {
+              handleDateSelect(date);
+            } else {
+              onDateSelect(date);
+            }
+            console.log(`THIS ONEDate clicked: ${dateString}`);
+          }} 
+          style={{ 
+            position: 'absolute', 
+            backgroundColor: isSelected ? 'rgba(173, 216, 230, 0.5)' : '', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0 
+          }}>
+            {cellContent}
+          </div>
+          {/* Checkbox for date selection */}
+          {isInRange && <Checkbox
+            checked={isSelected}
+            onChange={() => handleDateSelect(date)}
+            style={{ position: 'absolute', top: 4, left: 4 }}
+          />}
+        </div>
+      );
     };
-  }, [predictions]);
+  }, [predictions, selectedDates]);
 
   return (
     <Card
@@ -70,11 +142,10 @@ const AstrologicalCalendar = ({ user, predictions, onDateSelect, onSavePredictio
               Save Predictions
             </Button>
           </div>
-
         </div>
       }
     >
-      <Calendar onSelect={onDateSelect} onPanelChange={() => {console.log("PANEL CHANGED")}} cellRender={dateCellRender} />
+      <Calendar cellRender={dateCellRender} />
     </Card>
   );
 };

@@ -16,6 +16,7 @@ export const UserDetailsHeader = () => (
 export const AccountInformation = ({ user }) => {
   const userDetails = user.userDetailsResponse || {};
   const calendarStatus = user.calendarStatusData || {};
+  const descJson = JSON.parse(userDetails.description);
 
   return (
     <Card style={{ marginBottom: 24 }}>
@@ -24,7 +25,7 @@ export const AccountInformation = ({ user }) => {
         <Descriptions.Item label="Email">{userDetails.email ?? '--'}</Descriptions.Item>
         <Descriptions.Item label="Contact">{userDetails.number ?? '--'}</Descriptions.Item>
         <Descriptions.Item label="Date of Birth">{userDetails.dob ?? '--'}</Descriptions.Item>
-        <Descriptions.Item label="Time of Birth, Place of Birth">{userDetails.description ?? '--'}</Descriptions.Item>
+        <Descriptions.Item label="Time of Birth, Place of Birth">{`${descJson.timeOfBirth}, ${descJson.placeOfBirth}` ?? '--'}</Descriptions.Item>
         <Descriptions.Item label="Member Since">{formatTimestamp(userDetails.createdAt) ?? '--'}</Descriptions.Item>
         <Descriptions.Item label="Subscription Status">{calendarStatus.status ?? '--'}</Descriptions.Item>
         <Descriptions.Item label="Subscription Start">{calendarStatus.startTime ? formatTimestamp(calendarStatus.startTime) : '--'}</Descriptions.Item>

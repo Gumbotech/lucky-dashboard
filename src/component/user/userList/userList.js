@@ -11,23 +11,39 @@ const UserListPage = ({ configData, onManageClick }) => {
   const [searchText, setSearchText] = useState('');
   const [subscriptionFilter, setSubscriptionFilter] = useState(null);
   const [userData, setUserData] = useState([]);
-  const [loading, setLoading] = useState(false); // State for loading
+  const [loading, setLoading] = useState(false);
 
-  const fetchData = async (status = 'PENDING') => {
-    setLoading(true); // Show spinner
+  const fetchData = async (status = null) => {
+    setLoading(true);
     try {
-      const response = await getUserWithStatus(status);
-      setUserData(response.items || []);
+      if (status) {
+        const response = await getUserWithStatus(status);
+        setUserData(response.items || []);
+      } else {
+        // Fetch all statuses
+        const [pending, partial, completed] = await Promise.all([
+          getUserWithStatus('PENDING'),
+          getUserWithStatus('PARTIAL'),
+          getUserWithStatus('COMPLETED'),
+        ]);
+        // Combine results
+        setUserData([
+          ...(pending.items || []),
+          ...(partial.items || []),
+          ...(completed.items || []),
+        ]);
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
       await timeout(200);
-      setLoading(false); // Hide spinner
+      setLoading(false);
     }
   };
+  
 
   useEffect(() => {
-    fetchData(); // Fetch data on component mount
+    fetchData(); 
   }, []);
 
   const filteredUsers = userData.filter(user => {
@@ -113,7 +129,6 @@ const UserListPage = ({ configData, onManageClick }) => {
           <Select
             style={{ width: 200 }}
             placeholder="Filter by status"
-            defaultValue="PENDING"
             allowClear
             onChange={(value) => fetchData(value)}
             options={[
